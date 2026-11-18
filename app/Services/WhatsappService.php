@@ -11,12 +11,13 @@ use RuntimeException;
 
 class WhatsappService
 {
-    public const DEFAULT_TEMPLATE = "🚨 *Nouvel incident {reference}*\n\n"
+     public const DEFAULT_TEMPLATE = "🚨 *Nouvel incident {reference}*\n\n"
         ."📍 Bureau : {bureau} ({etage})\n"
         ."🔧 Type : {type}\n"
         ."⚠️ Priorité : {priorite}\n"
         ."📝 {description}\n"
         ."👤 Signalé par : {agent}\n"
+        ."📞 Téléphone : {telephone}\n" // <-- Ajout
         ."🕒 {date}";
 
     /** Numéros administrateurs configurés (un par ligne ou séparés par virgule/point-virgule). */
@@ -37,9 +38,13 @@ class WhatsappService
         return Setting::get('whatsapp_template') ?: self::DEFAULT_TEMPLATE;
     }
 
-    public static function construireMessage(Incident $incident): string
+        public static function construireMessage(Incident $incident): string
     {
         $incident->loadMissing(['bureau.etage', 'type', 'declarant']);
+
+        // Fallback pour les déclarants anonymes
+        $nomDeclarant = $incident->declarant->name ?? $incident->declarant_nom ?? '-';
+        $telephoneDeclarant = $incident->declarant->phone ?? $incident->declarant_telephone ?? 'Non fourni';
 
         return strtr(self::template(), [
             '{reference}' => $incident->reference,
@@ -48,7 +53,8 @@ class WhatsappService
             '{type}' => $incident->type->nom ?? '-',
             '{priorite}' => $incident->prioriteLabel(),
             '{description}' => $incident->description,
-            '{agent}' => $incident->declarant->name ?? '-',
+            '{agent}' => $nomDeclarant,
+            '{telephone}' => $telephoneDeclarant, // <-- Ajout
             '{date}' => $incident->created_at->format('d/m/Y H:i'),
         ]);
     }
