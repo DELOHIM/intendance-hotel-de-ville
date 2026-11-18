@@ -11,7 +11,8 @@ class Incident extends Model
 {
     protected $fillable = [
         'reference', 'bureau_id', 'bien_id', 'type_incident_id', 'user_id', 'assigne_a',
-        'description', 'priorite', 'statut', 'photo', 'resolu_le',
+        'description', 'priorite', 'statut', 'photo', 'resolu_le', 'declarant_nom',
+    'declarant_telephone',
     ];
 
     protected function casts(): array
